@@ -1,0 +1,85 @@
+TASK:
+  KIND: "Panoptic"
+INPUT:
+  MIN_SIZE_TRAIN: (800, 832, 864, 896, 928, 960, 992, 1024)
+  MAX_SIZE_TRAIN: 2048
+  MIN_SIZE_TEST: 1024
+  MAX_SIZE_TEST: 2048
+MODEL:
+  META_ARCHITECTURE: "PanopticFPN"
+  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-50"
+  BACKBONE:
+    CONV_BODY: "R-50-FPN"
+    OUT_CHANNELS: 256
+  RPN:
+    USE_FPN: True
+    ANCHOR_STRIDE: (4, 8, 16, 32, 64)
+    PRE_NMS_TOP_N_TRAIN: 2000
+    PRE_NMS_TOP_N_TEST: 1000
+    POST_NMS_TOP_N_TEST: 1000
+    FPN_POST_NMS_TOP_N_TEST: 1000
+    USE_SEMANTIC_FEATURES: False
+    RPN_HEAD: "SingleConvRPNHead"
+  ROI_HEADS:
+    USE_FPN: True
+  ROI_BOX_HEAD:
+    POOLER_RESOLUTION: 7
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    POOLER_SAMPLING_RATIO: 2
+    FEATURE_EXTRACTOR: "FPN2MLPFeatureExtractor"
+    PREDICTOR: "FPNPredictor"
+    NUM_CLASSES: 9
+  ROI_MASK_HEAD:
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    FEATURE_EXTRACTOR: "MaskRCNNFPNFeatureExtractor"
+    PREDICTOR: "MaskRCNNC4Predictor"
+    POOLER_RESOLUTION: 14
+    POOLER_SAMPLING_RATIO: 2
+    RESOLUTION: 28
+    SHARE_BOX_FEATURE_EXTRACTOR: False
+  ROI_ORDER_HEAD:
+    OVERLAP_THRESHOLD: 0.05
+    BATCH_SIZE_PER_IMAGE: 512
+    SHARE_MASK_FEATURE_EXTRACTOR: False
+    ENSURE_CONSISTENCY: False
+    WEIGHT: 1.0
+    ONLY_TRAIN: True
+  SEMANTIC:
+    USE_FPN: True
+    USE_DC: True
+    SEMANTIC_HEAD: "UpsampleEqualSizeConvConcat"
+    UPSAMPLE_MODULE: "StraightDeconv"
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    COLLAPSE_THING_ONTOLOGY: False
+    UPSAMPLE_METHOD: "bilinear"
+    NUM_CLASSES: 11
+  PANOPTIC:
+    INSTANCE_WEIGHT: 1.0
+    SEMANTIC_WEIGHT: 1.0
+    COMPUTE_CC_RESULTS: False
+    COMPUTE_PRE_RESULTS: True
+  FUSION:
+    CONFIDENCE_THRESHOLD: 0.6
+    OVERLAP_THRESHOLD: 0.4
+    STUFF_MINIMUM_AREA: 2048
+  MASK_ON: True
+  ORDER_ON: True
+  WEIGHT: "/local/experiments/panoptic/cityscapes/06202019_120811/model_final.pth" # "/local/experiments/panoptic/cityscapes/06232019_173719/model_final.pth" #
+DATASETS:
+  TRAIN: ("panoptic_cityscapes_fine_instanceonly_seg_train_cocostyle_overlap005",)
+  TEST: ("panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle",)
+DATALOADER:
+  SIZE_DIVISIBILITY: 32
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.02
+  WEIGHT_DECAY: 0.0001
+  STEPS: (9000,)
+  MAX_ITER: 12500
+TEST:
+  IMS_PER_BATCH: 8
+  INTRACLASS_OCCLUSION: True
+  PREDICTION_PATHS: ["/local/experiments/panoptic/cityscapes/06232019_221633/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"] #["/local/experiments/panoptic/cityscapes/06232019_230716/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"] #["/local/experiments/panoptic/cityscapes/06242019_085723/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"] #["/local/experiments/panoptic/cityscapes/06232019_230716/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"] ["/local/experiments/panoptic/cityscapes/06242019_214756/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"]
+TEMPORARY_DIR: "/local/tmp"
+NAME: "cityscapes"
+DESCRIPTION: "hopefully fixed the solver, trying at 005"

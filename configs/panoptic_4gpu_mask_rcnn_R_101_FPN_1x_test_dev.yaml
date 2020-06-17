@@ -1,0 +1,71 @@
+TASK:
+  KIND: "Panoptic"
+MODEL:
+  META_ARCHITECTURE: "PanopticFPN"
+  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-101"
+  BACKBONE:
+    CONV_BODY: "R-101-FPN"
+    OUT_CHANNELS: 256
+  RPN:
+    USE_FPN: True
+    ANCHOR_STRIDE: (4, 8, 16, 32, 64)
+    PRE_NMS_TOP_N_TRAIN: 2000
+    PRE_NMS_TOP_N_TEST: 1000
+    POST_NMS_TOP_N_TEST: 1000
+    FPN_POST_NMS_TOP_N_TEST: 1000
+    USE_SEMANTIC_FEATURES: False
+    RPN_HEAD: "SingleConvRPNHead"
+  ROI_HEADS:
+    USE_FPN: True
+  ROI_BOX_HEAD:
+    POOLER_RESOLUTION: 7
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    POOLER_SAMPLING_RATIO: 2
+    FEATURE_EXTRACTOR: "FPN2MLPFeatureExtractor"
+    PREDICTOR: "FPNPredictor"
+  ROI_MASK_HEAD:
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    FEATURE_EXTRACTOR: "MaskRCNNFPNFeatureExtractor"
+    PREDICTOR: "MaskRCNNC4Predictor"
+    POOLER_RESOLUTION: 14
+    POOLER_SAMPLING_RATIO: 2
+    RESOLUTION: 28
+    SHARE_BOX_FEATURE_EXTRACTOR: False
+  ROI_ORDER_HEAD:
+    BATCH_SIZE_PER_IMAGE: 128
+    SHARE_MASK_FEATURE_EXTRACTOR: False
+    ENSURE_CONSISTENCY: True
+    WEIGHT: 1.0
+  SEMANTIC:
+    USE_FPN: True
+    SEMANTIC_HEAD: "UpsampleEqualSizeConvSum"
+    UPSAMPLE_MODULE: "One3x3ReLU"
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    COLLAPSE_THING_ONTOLOGY: True
+    UPSAMPLE_METHOD: "bilinear"
+  PANOPTIC:
+    INSTANCE_WEIGHT: 1.0
+    SEMANTIC_WEIGHT: 0.5
+    COMPUTE_CC_RESULTS: False
+    COMPUTE_PRE_RESULTS: False
+  MASK_ON: True
+  ORDER_ON: True
+  WEIGHT: "/mnt/cube/kwl042/panoptic_exps/panoptic/baseline/03092019_234338/model_0180000.pth" #03092019_234338/model_0195200.pth" #"/mnt/cube/jlazarow/experiments/panoptic/baseline/03062019_232440/model_final.pth" #/local/experiments/panoptic/order/03142019_125645/model_final.pth
+DATASETS:
+  TRAIN: ("panoptic_coco_2017_train_overlap02",)
+  TEST: ("panoptic_coco_2017_val",)
+DATALOADER:
+  SIZE_DIVISIBILITY: 32
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.01
+  WEIGHT_DECAY: 0.0001
+  STEPS: (120000, 160000) #(60000, 80000)
+  MAX_ITER: 185000 #90000
+TEST:
+  CHUNK_PREDICTIONS: True
+  PREDICTION_PATHS: []
+  IMS_PER_BATCH: 8
+TEMPORARY_DIR: "/local/tmp"
+NAME: "order"
+DESCRIPTION: "dense ontology, R101"

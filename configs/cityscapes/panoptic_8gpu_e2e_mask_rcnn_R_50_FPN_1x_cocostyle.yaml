@@ -1,0 +1,80 @@
+TASK:
+  KIND: "Panoptic"
+INPUT:
+  MIN_SIZE_TRAIN: (800, 816, 832, 848, 864, 880, 896, 912, 928, 944, 960, 976, 992, 1008, 1024)
+  MAX_SIZE_TRAIN: 2048
+  MIN_SIZE_TEST: 1024
+  MAX_SIZE_TEST: 2048
+MODEL:
+  META_ARCHITECTURE: "PanopticFPN"
+  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-50"
+  BACKBONE:
+    CONV_BODY: "R-50-FPN"
+    OUT_CHANNELS: 256
+  RPN:
+    USE_FPN: True
+    ANCHOR_STRIDE: (4, 8, 16, 32, 64)
+    PRE_NMS_TOP_N_TRAIN: 2000
+    PRE_NMS_TOP_N_TEST: 1000
+    POST_NMS_TOP_N_TEST: 1000
+    FPN_POST_NMS_TOP_N_TEST: 1000
+    USE_SEMANTIC_FEATURES: False
+    RPN_HEAD: "SingleConvRPNHead"
+  ROI_HEADS:
+    USE_FPN: True
+  ROI_BOX_HEAD:
+    POOLER_RESOLUTION: 7
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    POOLER_SAMPLING_RATIO: 2
+    FEATURE_EXTRACTOR: "FPN2MLPFeatureExtractor"
+    PREDICTOR: "FPNPredictor"
+    NUM_CLASSES: 9
+  ROI_MASK_HEAD:
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    FEATURE_EXTRACTOR: "MaskRCNNFPNFeatureExtractor"
+    PREDICTOR: "MaskRCNNC4Predictor"
+    POOLER_RESOLUTION: 14
+    POOLER_SAMPLING_RATIO: 2
+    RESOLUTION: 28
+    SHARE_BOX_FEATURE_EXTRACTOR: False
+  ROI_ORDER_HEAD:
+    BATCH_SIZE_PER_IMAGE: 128
+    SHARE_MASK_FEATURE_EXTRACTOR: False
+    ENSURE_CONSISTENCY: True
+    WEIGHT: 1.0
+  SEMANTIC:
+    USE_FPN: True
+    SEMANTIC_HEAD: "UpsampleEqualSizeConvSum"
+    UPSAMPLE_MODULE: "One3x3ReLU"
+    POOLER_SCALES: (0.25, 0.125, 0.0625, 0.03125)
+    COLLAPSE_THING_ONTOLOGY: True
+    UPSAMPLE_METHOD: "bilinear"
+    NUM_CLASSES: 11
+  PANOPTIC:
+    INSTANCE_WEIGHT: 1.0
+    SEMANTIC_WEIGHT: 1.0
+    COMPUTE_CC_RESULTS: False
+    COMPUTE_PRE_RESULTS: True
+  FUSION:
+    CONFIDENCE_THRESHOLD: 0.6
+    OVERLAP_THRESHOLD: 0.5
+    STUFF_MINIMUM_AREA: 2048
+  MASK_ON: True
+  WEIGHT: "/local/experiments/panoptic/cityscapes/05162019_155406/model_final.pth"
+DATASETS:
+  TRAIN: ("panoptic_cityscapes_fine_instanceonly_seg_train_cocostyle",)
+  TEST: ("panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle",)
+DATALOADER:
+  SIZE_DIVISIBILITY: 32
+SOLVER:
+  IMS_PER_BATCH: 8
+  BASE_LR: 0.01
+  WEIGHT_DECAY: 0.0001
+  STEPS: (24000,)
+  MAX_ITER: 36000
+TEST:
+  IMS_PER_BATCH: 8
+  PREDICTION_PATHS: ["/local/experiments/panoptic/cityscapes/05242019_133904/inference/panoptic_cityscapes_fine_instanceonly_seg_val_cocostyle/predictions.pth"]
+TEMPORARY_DIR: "/tmp"
+NAME: "cityscapes"
+DESCRIPTION: "renewing this effort"
